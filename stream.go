@@ -183,7 +183,7 @@ type Encoder struct {
 	err        error
 	escapeHTML bool
 
-	indentBuf    []byte
+	indentBuf    *bytes.Buffer
 	indentPrefix string
 	indentValue  string
 }
@@ -221,11 +221,15 @@ func (enc *Encoder) Encode(v any) error {
 
 	b := e.Bytes()
 	if enc.indentPrefix != "" || enc.indentValue != "" {
-		enc.indentBuf, err = appendIndent(enc.indentBuf[:0], b, enc.indentPrefix, enc.indentValue)
+		if enc.indentBuf == nil {
+			enc.indentBuf = new(bytes.Buffer)
+		}
+		enc.indentBuf.Reset()
+		err = Indent(enc.indentBuf, b, enc.indentPrefix, enc.indentValue)
 		if err != nil {
 			return err
 		}
-		b = enc.indentBuf
+		b = enc.indentBuf.Bytes()
 	}
 	if _, err = enc.w.Write(b); err != nil {
 		enc.err = err
