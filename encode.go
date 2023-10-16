@@ -819,7 +819,7 @@ func newMapEncoder(t reflect.Type) encoderFunc {
 	switch t.Key().Kind() {
 	case reflect.String,
 		reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
-		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr, reflect.Interface:
 	default:
 		if !t.Key().Implements(textMarshalerType) {
 			return unsupportedTypeEncoder
@@ -1002,6 +1002,10 @@ type reflectWithString struct {
 }
 
 func (w *reflectWithString) resolve() error {
+	if w.k.Kind() == reflect.Interface {
+		w.k = w.k.Elem()
+	}
+
 	if w.k.Kind() == reflect.String {
 		w.ks = w.k.String()
 		return nil
